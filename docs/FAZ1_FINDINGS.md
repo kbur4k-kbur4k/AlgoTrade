@@ -41,9 +41,35 @@ Edge KÜÇÜK (IC 0.013). Asıl mesele: bu sinyal **işlem maliyetini aşacak ka
 Momentum tam burada öldü. Küçük edge ancak **seçici, maliyet-farkında execution**'la
 hasat edilir → **Trade Quality Gate**'in varlık sebebi.
 
-**Sıradaki deney:** lgbm sinyalini Trade Quality Gate ile (yalnız yüksek-conviction,
-net-edge > maliyet) OOS + maliyetle trade et → net pozitif mi? Bu, "para kazanılabilir mi"
-sorusunun nihai cevabı.
+## 5. NİHAİ DENEY: sinyal maliyeti aşıyor mu? + buy-and-hold kıyası
+
+lgbm OOS tahminleri (270k bar, 2.57 yıl) maliyetle trade edildi.
+
+**Native 5-dk frekansı:** brüt pozitif ama NET her eşikte felaket negatif
+(−262%…−4665%) — binlerce işlem küçük edge'i (IC 0.013) yok ediyor.
+
+**Düşük frekans (1-gün hold) + yüksek seçicilik (pred>0.8):** net +81%, Sharpe ~0.64,
+738 işlem. Seçilen barlar ortalamanın **4×**'i (0.13bp vs 0.03bp/bar) → gerçek seçim becerisi.
+
+**AMA buy-and-hold kıyası belirleyici:**
+- Buy-and-hold ETH (OOS): **+87.9%, Sharpe 0.514**
+- En iyi strateji: +81% (< +88%), Sharpe 0.64 (> 0.51 ama %60 piyasa-dışı kaldığı için).
+
+## NİHAİ VERDICT (Faz 1 karar kapısı)
+
+- **ML'in gerçek ama küçük seçim becerisi var** (AUC 0.64, IC 0.013, seçili bar 4× getiri).
+- **Ancak maliyet sonrası buy-and-hold ETH'i konvansiyonel olarak YENMİYOR.** Marjinal
+  risk-ayarlı iyileşme, gerçek sürtünmeler (küçük-hesap gas, gerçek slippage, MEV,
+  5-dk execution) altında büyük olasılıkla kaybolur.
+- **"Para kazanılabilir mi?" → gerçekçi olarak hayır** — en azından sadece ETH tutmayı
+  geçecek, maliyet-sonrası net bir biçimde değil.
+
+### Bundan sonra mantıklı yollar
+1. **Daha uzun-horizon edge ara:** modeli 5-dk yerine 1-4 saat / 1-gün getiri etiketiyle
+   yeniden eğit → daha az işlem, edge o horizonda kalıcıysa maliyeti aşma şansı. (Test edilmeli.)
+2. **Beklentiyi düşür:** bu strateji sınıfı küçük sermaye + on-chain maliyetle bir "fon"
+   olamaz; portföy/öğrenme projesi veya altyapı-ürünü (C yolu) olarak değerlendir.
+3. **Gerçek parayı tut:** kanıt yokken canlıya geçme — paper modda kalmaya devam.
 
 ## Tekrar üretmek için
 ```bash
