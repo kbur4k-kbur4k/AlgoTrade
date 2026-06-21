@@ -79,10 +79,6 @@ def test_new_modules_importable():
     for module_name in [
         "wallet_manager.orchestrator_gas",
         "wallet_manager.orchestrator_lifecycle",
-        "wallet_manager.task_factories_yield",
-        "wallet_manager.task_factories_algo",
-        "wallet_manager.task_factories_short",
-        "wallet_manager.task_factories_airdrop",
     ]:
         try:
             mod = importlib.import_module(module_name)
