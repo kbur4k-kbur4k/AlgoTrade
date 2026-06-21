@@ -64,12 +64,31 @@ lgbm OOS tahminleri (270k bar, 2.57 yıl) maliyetle trade edildi.
 - **"Para kazanılabilir mi?" → gerçekçi olarak hayır** — en azından sadece ETH tutmayı
   geçecek, maliyet-sonrası net bir biçimde değil.
 
-### Bundan sonra mantıklı yollar
-1. **Daha uzun-horizon edge ara:** modeli 5-dk yerine 1-4 saat / 1-gün getiri etiketiyle
-   yeniden eğit → daha az işlem, edge o horizonda kalıcıysa maliyeti aşma şansı. (Test edilmeli.)
-2. **Beklentiyi düşür:** bu strateji sınıfı küçük sermaye + on-chain maliyetle bir "fon"
-   olamaz; portföy/öğrenme projesi veya altyapı-ürünü (C yolu) olarak değerlendir.
-3. **Gerçek parayı tut:** kanıt yokken canlıya geçme — paper modda kalmaya devam.
+## 6. Uzun-horizon edge denemesi (umut yolu #1) — BAŞARISIZ
+
+lgbm 4-saat ve 1-gün getiri etiketiyle yeniden eğitildi (walk-forward OOS):
+
+| Horizon | OOS AUC | IC | Buy&hold'u yenen? |
+|---|---|---|---|
+| 5-dk | 0.643 | +0.013 | hayır (maliyet öldürüyor) |
+| 4-saat | 0.516 | +0.023 | hayır (tüm eşikler net negatif) |
+| 1-gün | 0.500 | −0.013 | hayır (edge sıfır) |
+
+**Edge kısa-horizon (5-dk) mikroyapı edge'idir; uzun horizon'da kaybolur** (AUC 0.64→0.50).
+Edge'in olduğu yerde maliyet öldürüyor; maliyetin yönetilebildiği yerde edge yok.
+**Monetize edilebilir bir horizon yok.**
+
+## KESİN KAPANIŞ
+
+Edge ile maliyet-uygunluğun bir arada olduğu hiçbir frekans bulunamadı. Bu strateji
+sınıfı (mevcut feature seti + lgbm) küçük sermaye + on-chain maliyetle para kazandırmaz.
+
+### Kalan gerçekçi yollar
+1. **Beklentiyi yeniden çerçevele:** portföy/öğrenme projesi veya altyapı-ürünü (backtest
+   framework, C yolu). Mühendislik gerçek; ama "fon" değil.
+2. **Farklı veri/feature sınıfı:** mevcut OHLCV-türevi feature'lar tükendi. Gerçek edge
+   için farklı alfa kaynağı (on-chain akış, alternatif veri) gerekir — yeni araştırma.
+3. **Gerçek parayı tut:** paper modda kal. Kanıt yok.
 
 ## Tekrar üretmek için
 ```bash
