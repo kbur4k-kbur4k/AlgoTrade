@@ -499,10 +499,13 @@ class VirtualLedger:
         await self._conn.execute(_CREATE_SNAPSHOTS_SQL)
         await self._conn.execute(_CREATE_BALANCE_HISTORY_SQL)
         await self._conn.execute(_CREATE_DECISIONS_SQL)
-        for idx_sql in _CREATE_INDICES_SQL:
-            await self._conn.execute(idx_sql)
 
-        # Phase 3 migration: add session_id column if it doesn't exist
+        # Phase 3 migration: add session_id column if it doesn't exist.
+        # MUST run BEFORE index creation — _CREATE_INDICES_SQL builds
+        # idx_pd_session on paper_decisions(session_id); on a pre-migration
+        # database that column is absent, so creating the index first raised
+        # "OperationalError: no such column: session_id", aborting init and
+        # causing every paper cycle to be skipped (no trades recorded).
         try:
             # Check if column exists
             async with self._conn.execute("PRAGMA table_info(paper_decisions)") as cur:
@@ -521,6 +524,9 @@ class VirtualLedger:
                 log.info("Phase 3 migration: session_id column already exists")
         except Exception as _exc:
             log.warning("Phase 3 migration check failed: %s", _exc)
+
+        for idx_sql in _CREATE_INDICES_SQL:
+            await self._conn.execute(idx_sql)
 
         await self._conn.commit()
 
