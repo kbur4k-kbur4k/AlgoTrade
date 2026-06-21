@@ -245,6 +245,15 @@ class Settings:
     robust_paper_adf_entry_pvalue_max: float = 0.85
     robust_paper_alpha_entry_threshold: float = 0.04
 
+    # --- Trade Quality Gate (net-cost-aware entry filter; "Balanced") --
+    # All tunable; calibrate alpha_to_bps_scale + multiplier from backtest.
+    tqg_enabled: bool = True
+    tqg_min_conviction: float = 0.55
+    tqg_net_edge_multiplier: float = 2.0
+    tqg_alpha_to_bps_scale: float = 50.0
+    tqg_cooldown_seconds: float = 1800.0
+    tqg_max_trades_per_day: int = 6
+
     # --- Paths ---------------------------------------------------------
     algo_price_history_path: Path = Path("")
     short_state_path: Path = Path(__file__).resolve().parent / "state" / "short_state.json"
@@ -650,6 +659,13 @@ class Settings:
             adf_significance_level=_float("ADF_SIGNIFICANCE_LEVEL", 0.05),
             robust_paper_adf_entry_pvalue_max=_float("ROBUST_PAPER_ADF_ENTRY_PVALUE_MAX", 0.35),
             robust_paper_alpha_entry_threshold=_float("ROBUST_PAPER_ALPHA_ENTRY_THRESHOLD", 0.04),
+            # Trade Quality Gate
+            tqg_enabled=_bool("TQG_ENABLED", True),
+            tqg_min_conviction=_float("TQG_MIN_CONVICTION", 0.55),
+            tqg_net_edge_multiplier=_float("TQG_NET_EDGE_MULTIPLIER", 2.0),
+            tqg_alpha_to_bps_scale=_float("TQG_ALPHA_TO_BPS_SCALE", 50.0),
+            tqg_cooldown_seconds=_float("TQG_COOLDOWN_SECONDS", 1800.0),
+            tqg_max_trades_per_day=_int("TQG_MAX_TRADES_PER_DAY", 6),
             # Paths
             algo_price_history_path=_path("ALGO_PRICE_HISTORY_PATH", ""),
             short_state_path=_path("SHORT_STATE_PATH", str(Path(__file__).resolve().parent / "state" / "short_state.json")),
