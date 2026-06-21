@@ -473,6 +473,23 @@ async def _managed_notifier(notifier: INotifier) -> AsyncIterator[INotifier]:
         await notifier.stop()
 
 
+class _NullNotifier(INotifier):
+    """No-op notifier used when no notification channel is configured.
+
+    Lets the orchestrator run headless (e.g. local paper mode) without
+    Telegram credentials. All lifecycle methods are no-ops.
+    """
+
+    async def send(self, event: NotificationEvent) -> None:
+        return None
+
+    async def start(self) -> None:
+        return None
+
+    async def stop(self) -> None:
+        return None
+
+
 @dataclass
 class WalletResult:
     """Summary of a single wallet's execution attempt.
@@ -1096,6 +1113,13 @@ class WalletOrchestrator:
         """
         if self._notifier_override is not None:
             return self._notifier_override
+
+        if not (self._settings.telegram_bot_token and self._settings.telegram_chat_id):
+            log.info(
+                "No Telegram credentials configured — running headless with "
+                "no-op notifier (notifications disabled)."
+            )
+            return _NullNotifier()
 
         from wallet_manager.telegram_notifier import TelegramNotifier
 
