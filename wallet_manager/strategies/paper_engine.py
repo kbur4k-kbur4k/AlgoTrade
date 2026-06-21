@@ -73,6 +73,10 @@ PAPER_MIN_POSITION_PCT: float = 0.05   # Paper mode: min 5% of equity per trade 
 PAPER_MIN_HOLD_CYCLES: int = 5         # Hold at least 5 cycles (~5 min) before exit
 CONGESTION_GWEI: float = 15.0
 
+# Trade Quality Gate cost-estimate inputs (Base WETH/USDC).
+PAPER_DEX_FEE_BPS: float = 5.0              # 0.05% Uniswap V3 fee tier
+PAPER_GATE_POOL_DEPTH_USD: float = 500_000.0  # conservative depth for slippage estimate
+
 def _get_weth_usdc_pool() -> str:
     from wallet_manager.config import get_settings
     return get_settings().weth_usdc_pool
@@ -499,10 +503,13 @@ class VirtualLedger:
         await self._conn.execute(_CREATE_SNAPSHOTS_SQL)
         await self._conn.execute(_CREATE_BALANCE_HISTORY_SQL)
         await self._conn.execute(_CREATE_DECISIONS_SQL)
-        for idx_sql in _CREATE_INDICES_SQL:
-            await self._conn.execute(idx_sql)
 
-        # Phase 3 migration: add session_id column if it doesn't exist
+        # Phase 3 migration: add session_id column if it doesn't exist.
+        # MUST run BEFORE index creation — _CREATE_INDICES_SQL builds
+        # idx_pd_session on paper_decisions(session_id); on a pre-migration
+        # database that column is absent, so creating the index first raised
+        # "OperationalError: no such column: session_id", aborting init and
+        # causing every paper cycle to be skipped (no trades recorded).
         try:
             # Check if column exists
             async with self._conn.execute("PRAGMA table_info(paper_decisions)") as cur:
@@ -521,6 +528,9 @@ class VirtualLedger:
                 log.info("Phase 3 migration: session_id column already exists")
         except Exception as _exc:
             log.warning("Phase 3 migration check failed: %s", _exc)
+
+        for idx_sql in _CREATE_INDICES_SQL:
+            await self._conn.execute(idx_sql)
 
         await self._conn.commit()
 
@@ -1642,6 +1652,18 @@ class PaperTradingEngine:
         )
         self._gas_estimator = GasEstimator()
 
+        # Trade Quality Gate — net-cost-aware entry filter (configurable).
+        from wallet_manager.strategies.trade_quality_gate import (
+            GateConfig,
+            TradeQualityGate,
+        )
+        try:
+            from wallet_manager.config import get_settings as _gs_gate
+            _gate_cfg = GateConfig.from_settings(_gs_gate())
+        except Exception:
+            _gate_cfg = GateConfig()
+        self._trade_gate = TradeQualityGate(config=_gate_cfg)
+
         # Position tracking (mirrors real engine)
         self._in_position: bool = False
         self._entry_price: float = 0.0
@@ -2380,6 +2402,36 @@ class PaperTradingEngine:
                 should_buy = False
                 should_sell = False
 
+        # Trade Quality Gate (entries only): require net expected edge over
+        # estimated round-trip cost, plus conviction / cooldown / daily-cap.
+        if should_buy:
+            _tg_size = min(trade_budget_usd, usdc_balance)
+            _slip_est, _ = self._slippage.simulate_slippage(
+                size_usd=_tg_size,
+                pool_depth_usd=PAPER_GATE_POOL_DEPTH_USD,
+                model=self._config.slippage_model,
+                entry_price=price,
+            )
+            _gas_bps = (_pre_gas / _tg_size * 10_000.0) if _tg_size > 0 else 0.0
+            _cost_bps = _slip_est + _gas_bps + PAPER_DEX_FEE_BPS
+            _gate = self._trade_gate.evaluate(
+                robust_alpha=signal.robust_alpha,
+                confidence=signal.confidence,
+                cost_bps=_cost_bps,
+            )
+            if not _gate.allow:
+                primary_reason = f"TQG_{_gate.reason}"
+                decision_notes = (
+                    f"gate={_gate.reason} edge={_gate.expected_edge_bps:.1f}bps "
+                    f"cost={_cost_bps:.1f}bps required={_gate.required_edge_bps:.1f}bps"
+                )
+                log.info(
+                    f"PAPER_ENGINE: TQG blocked entry — {_gate.reason} "
+                    f"(edge={_gate.expected_edge_bps:.1f}bps vs "
+                    f"required={_gate.required_edge_bps:.1f}bps, cost={_cost_bps:.1f}bps)"
+                )
+                should_buy = False
+
         if should_buy:
             action = "BUY"
             would_have_executed = True
@@ -2479,6 +2531,9 @@ class PaperTradingEngine:
                 reason_codes=tuple(reason_codes),
                 signal_source=f"robust_alpha={signal.robust_alpha:+.3f}",
             )
+
+            # Update gate state (cooldown + daily-cap) now that a trade fired.
+            self._trade_gate.record_trade()
 
             log.info(
                 f"PAPER_ENGINE: BUY ${size_usd:.2f} USDC -> "

@@ -183,6 +183,11 @@ def _settings_mock(tmp_path, db_name="p.db"):
         execution_mode="paper",
         weth_usdc_pool="0xfakepool",
         log_level="INFO",
+        # Disable the Trade Quality Gate here: these tests cover buy/sell
+        # mechanics, not the gate (the gate has its own unit tests). A bare
+        # MagicMock would otherwise yield garbage gate thresholds
+        # (float(MagicMock()) == 1.0), spuriously blocking entries.
+        tqg_enabled=False,
     )
     m.log_level = "INFO"
     return m
@@ -1139,3 +1144,75 @@ class TestVirtualLedgerAdditional:
         assert "low_vol" in regimes
         assert regimes["low_vol"]["decision_count"] == 2
         await ledger.shutdown()
+
+
+# ===========================================================================
+# Trade Quality Gate — integration with run_shadow_cycle (wiring proof)
+# ===========================================================================
+
+
+async def _build_gated_engine(tmp_path, *, db_name="gated.db", **tqg):
+    """Build an engine with the Trade Quality Gate ENABLED (overridable thresholds)."""
+    reset_paper_engine()
+    cfg = PaperTradeConfig(
+        initial_balance_usd=10_000.0, gas_estimation=False, execution_delay_ms=(0, 1),
+    )
+    defaults = dict(
+        tqg_enabled=True,
+        tqg_min_conviction=0.5,
+        tqg_net_edge_multiplier=2.0,
+        tqg_alpha_to_bps_scale=50.0,
+        tqg_cooldown_seconds=0.0,
+        tqg_max_trades_per_day=100,
+    )
+    defaults.update(tqg)
+    gated = MagicMock(
+        paper_db_path=str(tmp_path / db_name),
+        paper_max_gas_fraction_pct=5.0,
+        execution_mode="paper",
+        weth_usdc_pool="0xfakepool",
+        log_level="INFO",
+        **defaults,
+    )
+    with patch("wallet_manager.config.get_settings", return_value=gated):
+        engine = PaperTradingEngine(config=cfg)
+        await engine.initialize()
+    return engine
+
+
+class TestTradeQualityGateIntegration:
+    """Prove the gate is wired into run_shadow_cycle (blocks vs allows)."""
+
+    @pytest.mark.asyncio
+    async def test_gate_blocks_entry_on_low_conviction(self, tmp_path):
+        # Conviction floor above the signal's confidence → block (cost-independent).
+        engine = await _build_gated_engine(tmp_path, tqg_min_conviction=0.99)
+        signal = _make_signal(robust_alpha=0.9, confidence=0.80, should_enter_long=True)
+        with _full_cycle_patches(tmp_path, signal=signal):
+            result = await engine.run_shadow_cycle(
+                manager=_make_wallet_manager(),
+                wallet_id="w1",
+                portfolio_manager=_make_portfolio_manager(),
+                task_context=_task_context(),
+            )
+        assert result.action == "HOLD"
+        assert engine._in_position is False
+        await engine.shutdown()
+
+    @pytest.mark.asyncio
+    async def test_gate_allows_entry_when_thresholds_met(self, tmp_path):
+        # Lenient thresholds (no conviction floor, zero net-edge requirement) → allow.
+        engine = await _build_gated_engine(
+            tmp_path, tqg_min_conviction=0.0, tqg_net_edge_multiplier=0.0,
+        )
+        signal = _make_signal(robust_alpha=0.9, confidence=0.90, should_enter_long=True)
+        with _full_cycle_patches(tmp_path, signal=signal):
+            result = await engine.run_shadow_cycle(
+                manager=_make_wallet_manager(),
+                wallet_id="w1",
+                portfolio_manager=_make_portfolio_manager(),
+                task_context=_task_context(),
+            )
+        assert result.action == "BUY"
+        assert engine._in_position is True
+        await engine.shutdown()
