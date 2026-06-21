@@ -1,0 +1,68 @@
+{
+  "version": "20260409_202611",
+  "trained_at": "2026-04-09T20:26:11.164250+00:00",
+  "archive_path": "C:\\Users\\ASUS\\OneDrive\\Desktop\\walletbotV2-main\\walletbotV2-main\\wallet_manager\\ml_models\\archive\\20260409_202611_165252",
+  "generated_at": "2026-04-09T20:26:11.164250+00:00",
+  "data_quality": {
+    "total_candles": 315346,
+    "date_range_days": 1095.0,
+    "missing_pct": 0.0,
+    "sources_used": [
+      "binance"
+    ],
+    "regime_distribution": {
+      "high_vol": 0.4535,
+      "sideways": 0.2738,
+      "bull": 0.1552,
+      "bear": 0.1145,
+      "crisis": 0.003
+    }
+  },
+  "models": {
+    "xgboost": {
+      "oos_sharpe": 0.9309,
+      "win_rate": 0.5257,
+      "accepted": false,
+      "deflated_sharpe": 1.0,
+      "feature_stability": 0.0,
+      "rejection_reason": "unstable_outputs"
+    },
+    "lightgbm": {
+      "oos_sharpe": 1.1777,
+      "win_rate": 0.5491,
+      "accepted": true,
+      "deflated_sharpe": 1.0,
+      "feature_stability": 0.0,
+      "rejection_reason": ""
+    },
+    "lstm": {
+      "oos_sharpe": 0.1231,
+      "win_rate": 0.4989,
+      "accepted": false,
+      "deflated_sharpe": 1.0,
+      "feature_stability": 0.0,
+      "rejection_reason": "val_auc=0.5308"
+    },
+    "transformer": {
+      "oos_sharpe": 0.5712,
+      "win_rate": 0.4295,
+      "accepted": true,
+      "deflated_sharpe": 1.0,
+      "feature_stability": 0.0,
+      "rejection_reason": ""
+    },
+    "ppo": {
+      "oos_sharpe": 0.1282,
+      "win_rate": 0.62,
+      "accepted": true
+    }
+  },
+  "pruned_features": [],
+  "cpcv_n_combinations": 45,
+  "ensemble_active_weights": {
+    "xgboost": 0.0,
+    "lightgbm": 0.5,
+    "lstm": 0.0,
+    "transformer": 0.5
+  }
+}

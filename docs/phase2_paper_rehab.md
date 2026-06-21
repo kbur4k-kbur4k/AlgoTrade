@@ -1,0 +1,196 @@
+# Phase 2 — Paper Trading Rehabilitation
+
+## 1. Goal
+
+Restore paper-mode decision throughput so the system generates enough
+samples to support research and promotion decisions.
+
+## 2. Before-State Baseline (Pre-Change)
+
+Captured from skip-reason analytics prior to Phase 2 changes.
+
+| Metric | Pre-Change Value |
+|---|---|
+| Dominant skip reason | `RISK_BLOCKED(normal)` |
+| Second skip reason | `RISK_COMMITTEE:ModelDisagreement` |
+| Third skip reason | `TRADE_BUDGET_TOO_SMALL` |
+| Occasional | `RISK_COMMITTEE:ConfidenceDecay` (stress-test rejection) |
+| Effective closed-trade rate | Critically low (sample-starved) |
+
+### Root Causes Identified
+
+1. **`RISK_BLOCKED(normal)` — Deep Kelly alpha ≤ 0**  
+   `DeepKellyRiskEngine.calculate_position()` returns `position_usd=0` when
+   `alpha_score <= 0`. In paper mode this discards borderline signals that
+   would be valuable for learning.
+
+2. **`RISK_COMMITTEE:ModelDisagreement` — live-mode confidence threshold**  
+   `ModelDisagreementBrake(min_confidence=0.35)` uses the live-mode threshold.
+   Early paper sessions regularly produce confidence < 0.35 → BLOCK. This
+   is a live-mode conservative setting applied to virtual paper capital.
+
+3. **`TRADE_BUDGET_TOO_SMALL` — stacked multiplicative Kelly reductions**  
+   Three multipliers were applied back-to-back after Deep Kelly sizing:
+   - `risk_intelligence.get_effective_kelly_multiplier()` (regime scaling)
+   - `bayesian_kelly.get_uncertainty_factor()` (uncertainty discount)
+   - `execution_quality.get_optimal_timing()` → 0.5× if "avoid" window
+   
+   Combined effect: `$200 × 0.6 × 0.4 × 0.5 = $24` → sometimes below
+   `MIN_TRADE_USD = $5`, producing `TRADE_BUDGET_TOO_SMALL`.
+
+## 3. Changes Made
+
+### `wallet_manager/risk_committee.py`
+
+Added `get_paper_risk_committee()` singleton with paper-mode relaxed thresholds:
+
+| Parameter | Live value | Paper value | Rationale |
+|---|---|---|---|
+| `min_confidence` | 0.35 | 0.20 | Allow uncertain signals to generate learning samples |
+| `max_daily_loss_usd` | 50.0 | 500.0 | Virtual capital — no real loss risk |
+| `max_consecutive_losses` | 4 | 6 | More tolerance before halting |
+| `max_model_disagreement` | 0.3 | 0.4 | Wider disagreement tolerance |
+| `confidence_decay_threshold` | 0.15 | 0.30 | Higher variance acceptable |
+
+Hard safety rails preserved unchanged: `SessionKillSwitch`,
+`HighVolatilityBrake` (extreme), `DailyLossLimitBrake` (virtual).
+
+### `wallet_manager/strategies/paper_engine.py`
+
+Four changes in section 3.5 and 4.5:
+
+1. **Paper committee**: `get_risk_committee()` → `get_paper_risk_committee()`
+2. **Deep Kelly alpha≤0 override**: When Deep Kelly returns `position_usd=0`
+   with `drawdown_state != "halted"` (i.e., alpha≤0 or tiny Kelly fraction),
+   paper mode now uses a `$10` minimum exploratory position instead of blocking.
+   The `PAPER_FLOOR_OVERRIDE` reason code is appended so these trades can be
+   filtered separately in analytics. When `drawdown_state == "halted"` the block
+   is preserved (hard safety).
+3. **Removed stacked multipliers**: Bayesian Kelly and execution-quality
+   timing reductions removed from paper mode. These are live-mode conservative
+   sizing tools that stack destructively on paper positions.
+4. **Position floor**: After regime Kelly scaling, if `0 < position_usd < MIN_TRADE_USD`,
+   floor to `MIN_TRADE_USD * 2 = $10`. Prevents valid signals producing sub-floor
+   positions.
+
+### `wallet_manager/metrics_server.py`
+
+Added `/api/paper_health` endpoint. Returns:
+- `total_decisions`, `executed_decisions`, `skipped_decisions`
+- `trade_rate_pct`, `skip_rate_pct`
+- `dominant_skip_reason`, `dominant_skip_pct`
+- `sample_starved` (True when skip_rate > 80%)
+- `top_skip_reasons` (top 8 with counts and percentages)
+
+### `wallet_manager/security/telegram_commands.py`
+
+Added `/paper_health` Telegram command dispatching to `_handle_paper_health()`.
+Shows skip rate, trade rate, starvation status, and top 6 skip reasons.
+
+### `tests/unit/test_paper_engine_missing.py`
+
+Updated 3 test patches from `get_risk_committee` to `get_paper_risk_committee`
+to match new paper_engine import.
+
+## 3.5. Runtime Monitoring
+
+To verify Phase 2 is working during a runtime window:
+
+```
+# API endpoint
+GET http://localhost:9090/api/paper_health
+
+# Telegram command
+/paper_health
+```
+
+Expected healthy response (post-change):
+- `sample_starved: false`
+- `trade_rate_pct > 5%` (at least some trades executing)
+- `dominant_skip_reason` is NOT `RISK_COMMITTEE:ModelDisagreement` or `TRADE_BUDGET_TOO_SMALL`
+
+## 4. Expected After-State
+
+| Skip Reason | Expected Change |
+|---|---|
+| `RISK_BLOCKED(normal)` | Eliminated — replaced by `PAPER_FLOOR_OVERRIDE` exploratory trades |
+| `RISK_COMMITTEE:ModelDisagreement` | Significantly reduced (threshold 0.35→0.20) |
+| `TRADE_BUDGET_TOO_SMALL` | Significantly reduced (1 multiplier instead of 3, floor added) |
+| `PAPER_FLOOR_OVERRIDE` | New label — marks exploratory paper trades generated by the floor |
+| Closed-trade rate | Measurably higher |
+
+## 5. After-State Measurement
+
+### Clean window (Phase 2 code only — 2026-04-06 ~22:08 UTC onward, post regime-fix)
+
+Measured via `/api/paper_health` and `/api/decisions` on Azure container.
+
+```
+Snapshot: 2026-04-07 ~20:40 UTC
+Mode: robust_paper
+Azure VM: 51.124.156.116
+
+Session: session_1775508598 (Phase 2 + regime-fix code)
+  decisions: 247
+  executed:  29  → trade_rate = 11.7%   (vs ~3.1% pre-Phase-2)
+  sample_starved: false
+
+All-time /api/paper_health (includes pre-Phase-2 history):
+  total_decisions: 1150
+  executed: 60 (5.22%)
+  skip_rate: 75.04%
+  sample_starved: false
+  dominant_skip_reason: RISK_BLOCKED:normal (35.57% — historical tail)
+  TRADE_BUDGET_TOO_SMALL: 256 (22.3% — historical tail)
+  RISK_COMMITTEE:ModelDisagreement: 84 (7.3% — historical tail)
+  HIGH_VOL_DETECTED: 36 (regime filter, genuine market condition)
+```
+
+Note: cumulative RISK_BLOCKED:normal count (409) is entirely pre-Phase-2 history.
+Clean Phase-2 session trade rate (11.7%) is the meaningful after-state signal.
+
+### Comparison vs before-state
+
+| Skip Reason | Before | After (Phase-2 session) | Result |
+|---|---|---|---|
+| `RISK_BLOCKED:normal` | dominant (~47%) | **0% in clean session** | ✅ Eliminated |
+| `RISK_COMMITTEE:ModelDisagreement` | second (~9.6%) | rare (confidence < 0.20) | ✅ Reduced |
+| `TRADE_BUDGET_TOO_SMALL` | frequent (~29%) | reduced significantly | ✅ Improved |
+| `PAPER_FLOOR_OVERRIDE` | n/a | active (exploratory trades) | ✅ Working |
+| Trade rate | ~3.1% | **11.7%** | ✅ 3.8× improvement |
+| `sample_starved` | true | **false** | ✅ Resolved |
+
+### Phase 2 exit gate assessment
+
+- [x] `RISK_BLOCKED(normal)` eliminated — paper floor override confirmed working
+- [x] `RISK_COMMITTEE:ModelDisagreement` reduced — paper committee min_confidence 0.35→0.20 active
+- [x] `TRADE_BUDGET_TOO_SMALL` reduced — floor fix + stacked multiplier removal confirmed
+- [x] Safety controls preserved — kill switch, extreme volatility, halted drawdown still block
+- [x] Baseline-vs-post-change comparison documented
+- [x] Trade rate 3.8× better (3.1% → 11.7%) in clean Phase-2 session
+- [x] `sample_starved: false` confirmed
+- [x] 29 executed trades in Phase-2 session — sufficient for early analysis
+
+## 6. Exit Gate — COMPLETE ✅
+
+Phase 2 exit gate (roadmap §8.9) — declared complete 2026-04-07:
+
+- [x] Paper mode no longer dominated by avoidable sizing/filter deadlocks
+- [x] Explicit safety controls preserved (kill switch, extreme vol, daily loss limit)
+- [x] Decision and closed-trade count sufficient for early analysis (29 executed in clean session)
+- [x] Baseline-vs-post-change comparison documented above (§5)
+- [x] Regime filter HMM volume bug identified and fixed (§7)
+
+## 7. Regime Filter HMM Volume Bug Fix
+
+**Date:** 2026-04-06 22:08 UTC
+
+**Symptom:** After Phase 2 deploy, 36 consecutive `HIGH_VOL_DETECTED` skips, zero trades for ~1 hour.
+
+**Root Cause:** Paper mode passed `volume=0.0` to HMM regime filter. The HMM observation vector is `[log_return, realized_vol, volume_ratio]`. With `volume=0.0`, `volume_ratio = 0/median = 0`, corrupting the feature vector. HMM falsely classified everything as HIGH_VOL.
+
+**Fix:** `task_factories.py` paper factory: changed `volume=0.0` → `volume=1.0` (neutral, so volume_ratio ≈ 1.0).
+
+**Impact:** Paper mode only. Robust/live mode unchanged.
+
+**Result:** Regime corrected to LOW_VOL/normal. Trade resumed: `BUY WETH/USDC $13.70 @ $2140.03`.
