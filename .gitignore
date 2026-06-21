@@ -53,3 +53,6 @@ wallet_manager/wallets.json
 # local paper run (Faz 0)
 .env.local
 wallets.local.json
+
+# backtest output
+results/
