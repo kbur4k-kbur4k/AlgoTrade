@@ -80,10 +80,20 @@ SONUÇ: bugün canlı için monetize edilebilir edge DEĞİL.
 YAN BULGU (ürün): equal-weight sepet rebalansı BTC-hold'u yendi (+1431% vs +930%,
 Sharpe 1.15 vs 1.13). Alfa değil, çeşitlendirme primi. CLAUDE.md kapı-c reframe masada.
 
-SIRADAKİ ALFA YOLLARI (öncelik):
-1. order-book OFI — tarihsel YOK → canlı kaydet + forward-test (Faz 1 mikroyapı edge'i
-   burada olabilir ama maliyet sorusu açık).
-2. on-chain exchange net flow — bedava kaynak bulunursa (CryptoCompare/Glassnode ücretli).
-3. **REFRAME (CLAUDE.md kapı-c güçleniyor):** 3 alfa sınıfı denendi, hiçbiri net monetize
-   edilebilir değil. EW-rebalans endeks ürünü olarak paper track record + operatörle konuş.
-ÖLÜ: OHLCV+LGBM (Faz1), funding zscore mean-rev, stablecoin-supply timing, xsec-momentum (çürüdü).
+## 2026-06-28 — Sentiment (Fear & Greed): ÖLÜ + KONSOLİDE VERDICT ⛔
+
+5. alfa sınıfı (sentiment, farklı veri). Kontraryan F&G (alternative.me, free, 2018+).
+scripts/validate_sentiment_edge.py, out-of-cycle baştan gömülü (ETH+BTC, erken/geç).
+SONUÇ: her dilimde ölü — ETH full −99% vs bh +51%, BTC late −40% vs +261%, IC −0.03,
+0-1/6 fold. Günlük ölçekte kontraryan reversion yok. In-window serabı bile yok.
+
+**KONSOLİDE (docs/EDGE_SEARCH_SUMMARY.md): 5 alfa sınıfı + endeks konsolasyonu →
+HİÇBİRİ maliyet+out-of-cycle sonrası buy-and-hold'u yenmiyor. Bedava-veriyle kanıtlı
+edge YOK.** ÖLÜ liste: OHLCV+LGBM(Faz1), funding mean-rev, stablecoin-supply(overfit),
+xsec-momentum(çürüdü), sentiment(ölü), EW-endeks(BTC-hold'a yenildi).
+
+KARAR: CLAUDE.md "körü körüne zorlama" → 6. bedava-alfa zorlanmadı. Kalan +EV yollar
+operatör girdisi gerektirir (ücretli veri=bütçe / reframe=ÖLÇÜ değişimi). Stratejik
+çatal operatöre 2x sunuldu; "sen karar ver" yanıtı bütçe/ÖLÇÜ değişimi yetkisi DEĞİL
+→ dürüst durum: sağlam+paper, edge yok, operatör stratejik kararı bekliyor.
+DOĞRULAMA MAKİNESİ hazır (scripts/validate_*_edge.py) — yeni veri gelirse hızlı test.

@@ -35,10 +35,10 @@ Rebalans primi ≈ 0; EW>BTC sadece 2020-22 alt-season+survivorship. Güncel rej
 (2023-25) yalın BTC-hold (+558%, Sharpe 1.85) EW sepeti (+138%, 0.92) EZİYOR.
 Çeşitlendirilmiş endeks bile out-of-cycle'da buy-and-hold'u yenmiyor.
 
-## Çekirdek gerçek
-4 alfa sınıfı (OHLCV-ML, funding, on-chain-supply, xsec-momentum) + endeks konsolasyonu →
-HİÇBİRİ maliyet+out-of-cycle sonrası basit buy-and-hold'u (baskın varlık) net yenmiyor.
-Faz 1'in sonucu genelleşti: bu kurulumda kanıtlı edge YOK.
+## Çekirdek gerçek (konsolide: docs/EDGE_SEARCH_SUMMARY.md)
+**5 alfa sınıfı** (OHLCV-ML, funding, on-chain-supply, xsec-momentum, sentiment) +
+endeks konsolasyonu → HİÇBİRİ maliyet+out-of-cycle sonrası basit buy-and-hold'u
+(baskın varlık) net yenmiyor. Bu kurulumda bedava-veriyle kanıtlı edge YOK.
 
 ## Sıradaki: STRATEJİK ÇATAL (operatör kararı) 🎯
 CLAUDE.md "asla pes etme AMA körü körüne zorlama" — 5. spekülatif alfayı zorlamak körlük olur.
