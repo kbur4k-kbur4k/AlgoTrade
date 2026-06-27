@@ -42,8 +42,28 @@ NET yenmiyor.** Tam Faz 1 deseni: minik edge'i maliyet yutuyor. Bu spesifik
 formülasyon (zscore mean-reversion) ölü. KAPANIŞ DEĞİL: funding'in daha düşük
 turnover'lı carry formülasyonu veya başka varlık denenebilir, ama öncelik düşük.
 
-SIRADAKİ ALFA YOLLARI (henüz denenmedi, öncelik sırası):
-1. **on-chain exchange net flow** (wallet_manager/data/onchain_flows.py) — projenin
-   doğal/savunulabilir veri avantajı (wallet bot). Tarihsel data: CryptoCompare.
-2. order-book OFI — ama tarihsel data YOK (sadece canlı kaydedilebilir) → forward-test.
-3. funding carry (düşük turnover, threshold yerine uzun hold).
+## 2026-06-28 — On-chain stablecoin-supply: İLK GEÇEN EDGE ✅
+
+CEX exchange-flow (onchain_flows.py) ücretli key gerekti (CryptoCompare 401) → BLOKE.
+Aynı tezin bedava vekili test edildi: toplam stablecoin arzı = dry powder.
+Hipotez: arz büyür → alım gücü girer → ETH bullish. Günlük horizon (maliyet-OK).
+
+Test: `scripts/validate_onchain_edge.py` — DefiLlama stablecoin arzı (free) + yerel
+candle günlük close, 1096 gün (2023-04→2026-04). Causal zscore sinyali.
+
+**VERDICT: aday monetize-edilebilir edge (OOS+maliyet barını geçen İLK sinyal).**
+Long-only gw=7/zw=30/20bps: **+272% vs buy-hold +15.7%, Sharpe 1.25 vs 0.40.**
+Geçtiği kapılar: (1) parametre platosu gw=7-14/zw=30-60 hepsi yener, gw=3/30 başarısız;
+(2) 30bps'te bile yener; (3) 5/6 fold buy-hold'u yener (zamana yayılı); (4) FALSİFİKASYON:
+fiyat-momentum aynı pipeline = −57% Sharpe −0.48 → stablecoin sinyali fiyattan AYRI/gerçek;
+(5) overall IC +0.060 p=0.046. Mekanizma: yukarıyı yakala + drawdown'dan kaç.
+Detay: docs/ONCHAIN_FINDINGS.md.
+UYARI: tek varlık/tek döngü; out-of-cycle teyit + operatör onayı olmadan canlı YOK.
+
+SIRADAKİ ALFA YOLLARI (öncelik):
+1. **Stablecoin edge'i teyit + paper'a bağla** ← en yüksek etki. Out-of-cycle (BTC/başka
+   pencere) + ölü LGBM yerine bu sinyali shadow'a koy, forward track record (Faz 3).
+2. on-chain exchange net flow — CryptoCompare ücretli; bedava kaynak (Glassnode/CryptoQuant
+   ücretli) bulunursa. ŞİMDİLİK bloke.
+3. order-book OFI — tarihsel data YOK (sadece canlı) → forward-test.
+4. funding carry (düşük turnover) — zscore mean-rev versiyonu öldü.
