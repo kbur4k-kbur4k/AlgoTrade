@@ -63,10 +63,27 @@ nakde geç" şans eseri dipleri kaçtı; mega-boğada (2020-22) felaket.
 Gerçek OOS = FARKLI dönem VE FARKLI varlık. Her aday edge artık bu bara tabi.
 Entegrasyondan ÖNCE out-of-cycle teyit = doğru karar (paper'a bağlasaydım kuma inşa).
 
+## 2026-06-28 — Cross-sectional momentum: GERÇEK FAKTÖR AMA ÇÜRÜMÜŞ ⚠️
+
+17-coin Binance evreni, trailing-getiri sıralaması, long top-k haftalık rebalans.
+Adil benchmark = equal-weight HOLD (tüm sepet). scripts/validate_xsectional_edge.py.
+docs/XSECTIONAL_FINDINGS.md.
+
+En iyi config lb=30/k=5: tam dönem +3166% vs EW +1431% (5/6) GÖRÜNDÜ güçlü. AMA
+out-of-cycle split: ERKEN 2020-22 +908% vs +448% (6/6, Sharpe 1.58/1.33) güçlü;
+**GEÇ 2023-25 +145% vs +138% (Sharpe 0.93 vs 0.92, 4/6) = edge ~0.** Tüm fazlalık
+2020-22 alt-season'dan. Klasik faktör çürümesi + survivorship (evren=yaşayanlar) üst-sınır.
+Reversal falsifikasyonu kötü (momentum yönsel doğru). lb=30/k5 sweep'in en iyisiydi →
+en-iyi-seçme overfit riski, out-of-cycle teyit GEÇ dönemde çökertti.
+SONUÇ: bugün canlı için monetize edilebilir edge DEĞİL.
+
+YAN BULGU (ürün): equal-weight sepet rebalansı BTC-hold'u yendi (+1431% vs +930%,
+Sharpe 1.15 vs 1.13). Alfa değil, çeşitlendirme primi. CLAUDE.md kapı-c reframe masada.
+
 SIRADAKİ ALFA YOLLARI (öncelik):
 1. order-book OFI — tarihsel YOK → canlı kaydet + forward-test (Faz 1 mikroyapı edge'i
    burada olabilir ama maliyet sorusu açık).
 2. on-chain exchange net flow — bedava kaynak bulunursa (CryptoCompare/Glassnode ücretli).
-3. Çok-varlık cross-sectional (tek varlık zamanlamadan, varlıklar-arası sıralama) — farklı sınıf.
-4. Beklentiyi yeniden çerçevele (CLAUDE.md kapı c): edge yoksa portföy/altyapı ürünü.
-ÖLÜ: OHLCV+LGBM (Faz 1), funding zscore mean-rev, stablecoin-supply timing.
+3. **REFRAME (CLAUDE.md kapı-c güçleniyor):** 3 alfa sınıfı denendi, hiçbiri net monetize
+   edilebilir değil. EW-rebalans endeks ürünü olarak paper track record + operatörle konuş.
+ÖLÜ: OHLCV+LGBM (Faz1), funding zscore mean-rev, stablecoin-supply timing, xsec-momentum (çürüdü).
