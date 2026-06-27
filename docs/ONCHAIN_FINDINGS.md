@@ -1,8 +1,34 @@
-# ONCHAIN_FINDINGS.md — Stablecoin-supply alfa (ilk geçen edge)
+# ONCHAIN_FINDINGS.md — Stablecoin-supply alfa
 
 _Tarih: 2026-06-28 · Reproduce: `python -m scripts.validate_onchain_edge`_
 
-## Özet
+## ⛔ NİHAİ VERDICT: EDGE DEĞİL (out-of-cycle'da çöküyor)
+
+İlk değerlendirme "ilk geçen edge" dedi — **YANLIŞTI.** Tüm o kanıtlar (parametre
+platosu, per-fold, fiyat-momentum falsifikasyonu) **aynı 2023-2026 ETH penceresi
+içindeydi**; walk-forward fold'lar aynı rejimin alt-dilimleri = gerçek OOS değil.
+Gerçek out-of-cycle test (farklı dönem + farklı varlık) sinyali **reddediyor**:
+
+| Test (gw7/zw30/20bps/long-only) | Strateji | Buy-hold |
+|---|---|---|
+| ETH 2023-2026 (KEŞİF dönemi) | +186%…+272% | +16…32% |
+| ETH **2020-2022** (görülmemiş) | **+7.2%** | **+889.9%** |
+| BTC 2020-2026 (farklı varlık) | +73.5% | +737.8% |
+| BTC 2020-2022 | −33% | +138% |
+
+Sadece keşfedildiği pencerede çalışıyor → **overfit / rejim-özgü, monetize edilemez.**
+2023-26 ETH choppy+drawdown'lu; "arz daralınca nakde geç" o dönemin diplerinden
+şans eseri kaçtı. 2020-22 mega-boğada nakitte oturmak +890%'ı kaçırdı.
+
+**METODOLOJİ DERSİ (kritik):** Tek 3-yıllık pencerede walk-forward = sahte güven.
+Gerçek OOS = FARKLI dönem VE FARKLI varlık. Bundan sonra her aday edge bu bara tabi.
+(Faz 1'in NEGATİF sonucu güvende — o da 3yr ama "edge yok" dedi.)
+
+Aşağıdaki orijinal in-window analiz tarihsel kayıt için bırakıldı; verdict yukarıdadır.
+
+---
+
+## Özet (orijinal — in-window, yanıltıcıydı)
 
 Faz 1, "farklı alfa kaynağı (on-chain akış / alt-veri)" kapısını açık bırakmıştı.
 Hedeflenen CEX exchange-balance flow ücretli key gerektiriyor (CryptoCompare 401),

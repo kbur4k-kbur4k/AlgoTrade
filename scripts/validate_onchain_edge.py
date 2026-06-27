@@ -86,6 +86,33 @@ def load_daily_eth_close(db: str = "historical_data.db") -> dict[int, float]:
     return daily
 
 
+def fetch_binance_daily_close(symbol: str) -> dict[int, float]:
+    """Free deep-history daily close via Binance spot klines (paginated, 1000/call).
+
+    No auth, reliable, history since ~2017. Used for out-of-cycle confirmation on
+    assets/periods the signal was NOT discovered on (e.g. BTCUSDT, ETH pre-2023).
+    """
+    daily: dict[int, float] = {}
+    start_ms = 1500000000000  # 2017-07
+    now_ms = int(time.time() * 1000)
+    while start_ms < now_ms:
+        url = (f"https://api.binance.com/api/v3/klines?symbol={symbol}"
+               f"&interval=1d&startTime={start_ms}&limit=1000")
+        with urllib.request.urlopen(url, timeout=30) as resp:
+            kl = json.loads(resp.read())
+        if not kl:
+            break
+        for k in kl:
+            open_ms, close_px = int(k[0]), float(k[4])
+            daily[(open_ms // 1000 // DAY) * DAY] = close_px
+        newest = max(int(k[0]) for k in kl)
+        if len(kl) < 1000:
+            break
+        start_ms = newest + DAY * 1000
+        time.sleep(0.2)
+    return daily
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--folds", type=int, default=6)
@@ -100,18 +127,41 @@ def main() -> int:
                     help="realistic for a spot wallet: clip short positions to flat (0)")
     ap.add_argument("--signal", choices=["stablecoin", "price-mom"], default="stablecoin",
                     help="'price-mom' is a falsification benchmark: same pipeline driven "
-                    "by ETH price momentum instead of supply. Stablecoin must beat it.")
+                    "by price momentum instead of supply. Stablecoin must beat it.")
+    ap.add_argument("--price-source", choices=["local", "binance"], default="local",
+                    help="'binance' fetches deep free daily klines for out-of-cycle tests.")
+    ap.add_argument("--asset", choices=["eth", "btc"], default="eth",
+                    help="asset to test the (global) stablecoin signal against.")
+    ap.add_argument("--from-ym", default="", help="restrict to days >= YYYY-MM (out-of-cycle slicing)")
+    ap.add_argument("--to-ym", default="", help="restrict to days <= YYYY-MM")
     args = ap.parse_args()
 
     print("fetching DefiLlama stablecoin supply (free) ...")
     sdays, susd = fetch_stablecoin_supply()
     print(f"stablecoin points: {len(sdays)}")
-    eth = load_daily_eth_close()
-    print(f"local ETH daily closes: {len(eth)}")
+    if args.price_source == "binance":
+        symbol = {"eth": "ETHUSDT", "btc": "BTCUSDT"}[args.asset]
+        print(f"fetching {symbol} daily closes from Binance ...")
+        eth = fetch_binance_daily_close(symbol)
+        print(f"binance {symbol} daily closes: {len(eth)}")
+    else:
+        eth = load_daily_eth_close()
+        print(f"local ETH daily closes: {len(eth)}")
 
     # align on the intersection of days that have both supply and price
     s_by_day = dict(zip(sdays.tolist(), susd.tolist()))
     common = sorted(set(s_by_day) & set(eth))
+
+    def ym_to_ts(ym: str) -> int:
+        y, m = (int(x) for x in ym.split("-"))
+        return int(time.mktime((y, m, 1, 0, 0, 0, 0, 0, 0)))
+
+    if args.from_ym:
+        lo = ym_to_ts(args.from_ym)
+        common = [d for d in common if d >= lo]
+    if args.to_ym:
+        hi = ym_to_ts(args.to_ym)
+        common = [d for d in common if d <= hi]
     if len(common) < 200:
         print(f"FAIL: only {len(common)} overlapping days — cannot test.")
         return 1

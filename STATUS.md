@@ -2,11 +2,12 @@
 
 _Son güncelleme: 2026-06-28_
 
-## 🎯 EN ÖNEMLİ: İlk geçen edge bulundu
-**Stablecoin-supply sinyali** OOS + maliyet barını geçti (docs/ONCHAIN_FINDINGS.md):
-long-only +272% vs buy-hold +15.7%, Sharpe 1.25 vs 0.40, 5/6 fold, fiyat-momentum
-falsifikasyonunu geçti. Aday monetize-edilebilir edge. HÂLÂ PAPER — canlı için
-out-of-cycle teyit + operatör onayı şart.
+## ⚠️ Düzeltme: stablecoin edge'i REDDEDİLDİ (out-of-cycle çöktü)
+Stablecoin-supply sinyali in-window (2023-26 ETH) harika görünmüştü ama
+out-of-cycle başarısız (ETH 2020-22: +7% vs buy-hold +890%; BTC: çok altında).
+Overfit/rejim-özgü. Edge DEĞİL. Detay+metodoloji dersi: docs/ONCHAIN_FINDINGS.md.
+DERS: tek 3-yıl penceresinde walk-forward = sahte güven; gerçek OOS = farklı
+dönem VE varlık. Henüz monetize edilebilir edge YOK.
 
 ## Çalışıyor ✅
 - Bot lokalde robust_paper modda koşuyor (Faz 0 smoke PASS).
@@ -24,15 +25,16 @@ out-of-cycle teyit + operatör onayı şart.
 ## Kanıtlanmış ölü yollar (tekrar deneme) ⛔
 - OHLCV + LGBM/momentum: maliyet sonrası buy-and-hold yenmiyor (docs/FAZ1_FINDINGS.md).
 - Funding-rate zscore mean-reversion (8sa): gerçekçi maliyette −55% (LEARNINGS.md).
+- Stablecoin-supply timing: in-window iyi, out-of-cycle çöktü → overfit (ONCHAIN_FINDINGS.md).
 - CEX exchange-flow (CryptoCompare): ücretli key → şimdilik bloke, ölü değil.
 
 ## Sıradaki en yüksek-etki hamle 🎯
-**Stablecoin edge'ini sağlamlaştır + paper'a bağla:**
-1. Out-of-cycle teyit: BTC ve/veya farklı pencere; mümkünse Base/ETH-özgü chain
-   stablecoin arzı (DefiLlama chain endpoint).
-2. Ölü LGBM sinyalini bu sinyalle değiştir (shadow) → forward track record (Faz 3),
-   paper_decisions dolsun, ileri-doğru OOS doğrulama.
-3. Geçmeye devam ederse → operatöre kanıtla; canlı kararı operatörün (DEĞİŞMEZ KURAL).
+Aday alfa yolları (out-of-cycle barıyla, yani farklı dönem+varlık):
+1. Çok-varlık **cross-sectional** sinyal (varlıklar-arası sıralama; tek-varlık
+   zamanlamanın overfit tuzağından kaçar) — farklı alfa sınıfı.
+2. order-book OFI — tarihsel yok, canlı kaydet + forward-test.
+3. Hiçbiri tutmazsa: CLAUDE.md kapı (c) — beklentiyi yeniden çerçevele
+   (portföy/altyapı ürünü), operatörle konuş.
 
 ## Süreklilik notu
 İkinci öncelik: birkaç saatte bir headless `claude -p` koşan Windows zamanlanmış

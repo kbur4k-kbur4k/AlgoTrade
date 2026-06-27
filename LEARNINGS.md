@@ -42,28 +42,31 @@ NET yenmiyor.** Tam Faz 1 deseni: minik edge'i maliyet yutuyor. Bu spesifik
 formülasyon (zscore mean-reversion) ölü. KAPANIŞ DEĞİL: funding'in daha düşük
 turnover'lı carry formülasyonu veya başka varlık denenebilir, ama öncelik düşük.
 
-## 2026-06-28 — On-chain stablecoin-supply: İLK GEÇEN EDGE ✅
+## 2026-06-28 — On-chain stablecoin-supply: EDGE DEĞİL (out-of-cycle çöktü) ⛔
 
-CEX exchange-flow (onchain_flows.py) ücretli key gerekti (CryptoCompare 401) → BLOKE.
-Aynı tezin bedava vekili test edildi: toplam stablecoin arzı = dry powder.
-Hipotez: arz büyür → alım gücü girer → ETH bullish. Günlük horizon (maliyet-OK).
+Hipotez: toplam stablecoin arzı = dry powder; arz büyür→ETH bullish. Günlük horizon.
+Test: `scripts/validate_onchain_edge.py`, DefiLlama arzı (free) + fiyat.
 
-Test: `scripts/validate_onchain_edge.py` — DefiLlama stablecoin arzı (free) + yerel
-candle günlük close, 1096 gün (2023-04→2026-04). Causal zscore sinyali.
+İLK değerlendirme "ilk geçen edge" dedi (in-window 2023-26 ETH: long-only +272% vs
++15.7%, plato+per-fold+falsifikasyon geçti). **YANLIŞTI** — hepsi AYNI 2023-26
+penceresindeydi; walk-forward fold = aynı rejimin alt-dilimi, gerçek OOS değil.
 
-**VERDICT: aday monetize-edilebilir edge (OOS+maliyet barını geçen İLK sinyal).**
-Long-only gw=7/zw=30/20bps: **+272% vs buy-hold +15.7%, Sharpe 1.25 vs 0.40.**
-Geçtiği kapılar: (1) parametre platosu gw=7-14/zw=30-60 hepsi yener, gw=3/30 başarısız;
-(2) 30bps'te bile yener; (3) 5/6 fold buy-hold'u yener (zamana yayılı); (4) FALSİFİKASYON:
-fiyat-momentum aynı pipeline = −57% Sharpe −0.48 → stablecoin sinyali fiyattan AYRI/gerçek;
-(5) overall IC +0.060 p=0.046. Mekanizma: yukarıyı yakala + drawdown'dan kaç.
-Detay: docs/ONCHAIN_FINDINGS.md.
-UYARI: tek varlık/tek döngü; out-of-cycle teyit + operatör onayı olmadan canlı YOK.
+**Out-of-cycle (farklı dönem+varlık, Binance fiyat) REDDETTİ:**
+- ETH 2020-2022 (görülmemiş): strateji +7.2% vs buy-hold **+889.9%** ❌
+- BTC 2020-2026: +73.5% vs +737.8% ❌ | BTC 2020-22: −33% vs +138% ❌
+- ETH 2023-26 (keşif, sanity): +186% vs +31.7% ✓ (SADECE burada)
+
+NİHAİ: overfit/rejim-özgü, monetize edilemez. 2023-26 ETH choppy'sinde "arz daralınca
+nakde geç" şans eseri dipleri kaçtı; mega-boğada (2020-22) felaket.
+
+**METODOLOJİ DERSİ (kalıcı):** Tek 3-yıl penceresinde walk-forward = SAHTE GÜVEN.
+Gerçek OOS = FARKLI dönem VE FARKLI varlık. Her aday edge artık bu bara tabi.
+Entegrasyondan ÖNCE out-of-cycle teyit = doğru karar (paper'a bağlasaydım kuma inşa).
 
 SIRADAKİ ALFA YOLLARI (öncelik):
-1. **Stablecoin edge'i teyit + paper'a bağla** ← en yüksek etki. Out-of-cycle (BTC/başka
-   pencere) + ölü LGBM yerine bu sinyali shadow'a koy, forward track record (Faz 3).
-2. on-chain exchange net flow — CryptoCompare ücretli; bedava kaynak (Glassnode/CryptoQuant
-   ücretli) bulunursa. ŞİMDİLİK bloke.
-3. order-book OFI — tarihsel data YOK (sadece canlı) → forward-test.
-4. funding carry (düşük turnover) — zscore mean-rev versiyonu öldü.
+1. order-book OFI — tarihsel YOK → canlı kaydet + forward-test (Faz 1 mikroyapı edge'i
+   burada olabilir ama maliyet sorusu açık).
+2. on-chain exchange net flow — bedava kaynak bulunursa (CryptoCompare/Glassnode ücretli).
+3. Çok-varlık cross-sectional (tek varlık zamanlamadan, varlıklar-arası sıralama) — farklı sınıf.
+4. Beklentiyi yeniden çerçevele (CLAUDE.md kapı c): edge yoksa portföy/altyapı ürünü.
+ÖLÜ: OHLCV+LGBM (Faz 1), funding zscore mean-rev, stablecoin-supply timing.
