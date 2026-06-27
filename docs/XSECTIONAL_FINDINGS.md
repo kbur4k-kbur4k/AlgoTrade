@@ -33,13 +33,24 @@ bu sonucu ÜST-SINIR yapar → gerçek muhtemelen daha kötü.
 
 **Sonuç:** cross-sectional momentum bugün canlı için monetize edilebilir edge DEĞİL.
 
-## Yan bulgu (ürün açısı, CLAUDE.md kapı-c)
+## Yan bulgu STRESS-TEST EDİLDİ → o da çürüdü (dürüst düzeltme)
 
-Equal-weight sepet (17 coin, haftalık rebalans) BTC-hold'u yendi: **+1431% vs +930%,
-Sharpe 1.15 vs 1.13.** Alfa değil — ama çeşitlendirme + rebalans primi gerçek ve sağlam.
-"Para kazandıran sinyal" yoksa, savunulabilir bir ÜRÜN: çeşitlendirilmiş kripto endeksi
-+ disiplinli rebalans. Operatörle "beklentiyi yeniden çerçevele" konuşmasında masada.
+İlk bakışta EW sepet BTC-hold'u yendi (+1431% vs +930%) → "endeks ürünü" sanıldı.
+İki kontrol bunu da çökertti:
+- **Rebalans primi ≈ 0:** EW-rebalans vs EW-buy&hold(drift): FULL +1431% vs +1571%
+  (rebalans DAHA KÖTÜ), ERKEN +448% vs +426%, GEÇ +138% vs +137%. Rebalans değer katmıyor.
+- **EW>BTC sadece 2020-22 alt-season + survivorship:** ERKEN EW +448% vs BTC +61%; ama
+  **GEÇ 2023-25 BTC +558% (Sharpe 1.85) >> EW +138% (Sharpe 0.92).** Güncel rejimde
+  yalın BTC-hold çeşitlendirilmiş sepeti EZİYOR.
 
-## Sıradaki
-- Edge avı: order-book OFI (mikroyapı, tarihsel yok→canlı kaydet), alt-veri.
-- VEYA reframe: EW-rebalans endeks ürünü olarak paper'da track record (Faz 3), operatör onayı.
+Sonuç: "çeşitlendirilmiş endeks" bile out-of-cycle'da yalın BTC-hold'u yenmiyor.
+Hâlâ Faz 1'in çekirdek gerçeği geçerli: **basit buy-and-hold'u (baskın varlık) yenen
+hiçbir şey bulunamadı.**
+
+## Konsolide durum (4 alfa sınıfı)
+
+OHLCV-ML (Faz1) · funding mean-rev · on-chain stablecoin-supply · xsec-momentum →
+hiçbiri maliyet+out-of-cycle sonrası buy-and-hold'u net yenmiyor. "Endeks" konsolasyonu da
+güncel rejimde BTC-hold'a yeniliyor. Bu, körü körüne 5. denemeyi zorlamak yerine
+operatörle stratejik çatalı konuşma zamanı (CLAUDE.md: "asla pes etme AMA körü körüne
+de zorlama" + kapı-c).

@@ -30,20 +30,26 @@ dönem VE varlık. Henüz monetize edilebilir edge YOK.
   survivorship üst-sınır (docs/XSECTIONAL_FINDINGS.md).
 - CEX exchange-flow (CryptoCompare): ücretli key → şimdilik bloke, ölü değil.
 
-## Önemli yan bulgu (ürün açısı)
-Equal-weight 17-coin sepet + haftalık rebalans, BTC-hold'u yendi: +1431% vs +930%,
-Sharpe 1.15 vs 1.13 (2020-2025). Alfa değil — çeşitlendirme/rebalans primi, ama
-sağlam ve savunulabilir bir ÜRÜN çekirdeği.
+## "Endeks ürünü" yan bulgusu DA çürüdü (stress-test)
+Rebalans primi ≈ 0; EW>BTC sadece 2020-22 alt-season+survivorship. Güncel rejimde
+(2023-25) yalın BTC-hold (+558%, Sharpe 1.85) EW sepeti (+138%, 0.92) EZİYOR.
+Çeşitlendirilmiş endeks bile out-of-cycle'da buy-and-hold'u yenmiyor.
 
-## Sıradaki en yüksek-etki hamle 🎯
-3 alfa sınıfı denendi (price-ML, funding, on-chain-supply, xsec-momentum) → hiçbiri
-canlı için net monetize edilebilir değil. İki yol:
-1. **REFRAME (CLAUDE.md kapı-c, güçlü aday):** EW-rebalans çeşitlendirilmiş endeksi
-   paper'da çalıştır, forward track record (Faz 3); operatörle "para kazanan tek-sinyal
-   yerine sağlam endeks ürünü" konuşması. Bu ÖLÇÜ'nün sağlamlık yarısına hizmet eder.
-2. Devam edersek son alfa kolu: order-book OFI (canlı kaydet→forward-test) — tek
-   kalan, tarihsel-veri-gerektirmeyen mikroyapı yolu.
-**Operatör kararı gerekiyor:** reframe mi, son alfa kolu mu?
+## Çekirdek gerçek
+4 alfa sınıfı (OHLCV-ML, funding, on-chain-supply, xsec-momentum) + endeks konsolasyonu →
+HİÇBİRİ maliyet+out-of-cycle sonrası basit buy-and-hold'u (baskın varlık) net yenmiyor.
+Faz 1'in sonucu genelleşti: bu kurulumda kanıtlı edge YOK.
+
+## Sıradaki: STRATEJİK ÇATAL (operatör kararı) 🎯
+CLAUDE.md "asla pes etme AMA körü körüne zorlama" — 5. spekülatif alfayı zorlamak körlük olur.
+Operatöre sunulan seçenekler (kanıt: docs/*_FINDINGS.md):
+1. **Reframe (kapı-c):** ürünü "buy-and-hold'u yenen bot" yerine başka bir değer önerisi
+   olarak tanımla (risk-yönetimi/otomasyon/raporlama), gerçek-para hedefini bırak.
+2. **Son alfa kolu:** order-book OFI (canlı kaydet→forward-test) — tek kalan data-hafif yol,
+   ama Faz 1 mikroyapıda maliyetin edge'i yediğini gösterdi → düşük umut.
+3. **Yeni veri sınıfı (para gerektirir):** ücretli on-chain (Glassnode/CryptoQuant) veya
+   alternatif veri — operatör bütçe kararı.
+4. **Dürüst duraklat:** kanıtlı edge yok; sistemi sağlam/paper bırak, periyodik gözden geçir.
 
 ## Süreklilik notu
 İkinci öncelik: birkaç saatte bir headless `claude -p` koşan Windows zamanlanmış

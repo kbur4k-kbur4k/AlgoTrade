@@ -147,13 +147,27 @@ def main() -> int:
             turn = 0.0
         strat[t + 1] = float(np.nansum(prev_w * ret[t + 1])) - cost * turn
 
+    # equal-weight BUY-AND-HOLD (weights set once at start, drift) — isolates the
+    # rebalancing premium: ew (constant weight) vs ewbh (drift) measures rebalance value.
+    t_start = lb + 1
+    ewbh = np.full(T, np.nan)
+    if t_start < T - 1:
+        units = np.ones(N) / P[t_start]  # $1 equal split into each coin at t_start
+        port = units * P[t_start]
+        for t in range(t_start + 1, T):
+            new_port = units * P[t]
+            ewbh[t] = new_port.sum() / port.sum() - 1.0
+            port = new_port
+
     s = strat[np.isfinite(strat)]
     e = ew[np.isfinite(ew)]
+    eb = ewbh[np.isfinite(ewbh)]
     btc = ret[:, 0][np.isfinite(ret[:, 0])]
     label = "REVERSAL(bottom-k)" if args.reversal else "MOMENTUM(top-k)"
     print(f"\n=== Cross-sectional {label}  lb={lb} k={k} rebal={rb} cost={args.cost_bps}bps ===")
-    print(f"  STRATEGY        net = {cum(s)*100:+9.1f}%   Sharpe = {sharpe(s):+.3f}")
-    print(f"  EQUAL-WT HOLD       = {cum(e)*100:+9.1f}%   Sharpe = {sharpe(e):+.3f}")
+    print(f"  STRATEGY            = {cum(s)*100:+9.1f}%   Sharpe = {sharpe(s):+.3f}")
+    print(f"  EQUAL-WT REBALANCED = {cum(e)*100:+9.1f}%   Sharpe = {sharpe(e):+.3f}")
+    print(f"  EQUAL-WT BUY&HOLD   = {cum(eb)*100:+9.1f}%   Sharpe = {sharpe(eb):+.3f}  (rebalance premium = REBAL - B&H)")
     print(f"  BTC HOLD            = {cum(btc)*100:+9.1f}%   Sharpe = {sharpe(btc):+.3f}")
 
     # walk-forward per-fold vs equal-weight hold (the fair benchmark)
