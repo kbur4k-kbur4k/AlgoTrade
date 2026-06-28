@@ -5,6 +5,20 @@
 
 ---
 
+## 2026-06-28 — TEK HAYATTA KALAN: delta-nötr funding CARRY ⭐
+
+5 yön-tahmini sınıfı öldükten sonra kategorik-farklı mekanizma denendi (PUSULA #3):
+market-nötr carry (long spot + short perp, funding hasat; yön tahmini YOK).
+`scripts/validate_carry_edge.py`, Binance funding tam tarih 2019-2026.
+
+BULGU: funding %86 pozitif, **net +14.1%/yıl tarihsel, her fold pozitif (+2.2…+34.4%)**,
+hiç kayıp yıl yok. AMA: (1) ÇÜRÜYOR %14→%7(2yıl)→**%3.3(son yıl ~risk-free)**; (2) Sharpe
+~15 YANILTICI (gerçek risk likidasyon/basis/karşı-taraf tail'inde, funding oynaklığında
+değil); (3) türev hesabı+gerçek sermaye+likidasyon yönetimi gerek = DeFi-spot bottan farklı
+infra → OPERATÖR kararı. Detay: docs/CARRY_FINDINGS.md.
+DERS: "buy-and-hold'u yön olarak yen" tek soru değil; market-nötr carry farklı kategori.
+Ama küçük sermaye + çürüme + infra → bugün marjinal. Ben gerçek para/türev açmam.
+
 ## 2026-06-28 — Robustness durumu: chain + session bug ZATEN çözülmüş
 
 CLAUDE.md "ŞU ANKİ GERÇEK" bölümü bayattı. Doğruladım (paper_trades.db):

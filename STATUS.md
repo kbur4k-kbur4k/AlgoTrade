@@ -36,20 +36,21 @@ Rebalans primi ≈ 0; EW>BTC sadece 2020-22 alt-season+survivorship. Güncel rej
 Çeşitlendirilmiş endeks bile out-of-cycle'da buy-and-hold'u yenmiyor.
 
 ## Çekirdek gerçek (konsolide: docs/EDGE_SEARCH_SUMMARY.md)
-**5 alfa sınıfı** (OHLCV-ML, funding, on-chain-supply, xsec-momentum, sentiment) +
-endeks konsolasyonu → HİÇBİRİ maliyet+out-of-cycle sonrası basit buy-and-hold'u
-(baskın varlık) net yenmiyor. Bu kurulumda bedava-veriyle kanıtlı edge YOK.
+**6 alfa sınıfı.** 5 YÖN-tahmini (OHLCV-ML, funding-meanrev, on-chain-supply,
+xsec-momentum, sentiment) + endeks konsolasyonu → hiçbiri maliyet+out-of-cycle sonrası
+buy-and-hold'u yenmiyor. **TEK hayatta kalan: #6 delta-nötr funding CARRY** (market-nötr,
+yön tahmini değil) — gerçek/yapısal, her dönem pozitif (+14% tarihsel) AMA çürüyor
+(→%3.3 son yıl ~risk-free) + türev hesabı/gerçek sermaye gerek. Detay: CARRY_FINDINGS.md.
 
 ## Sıradaki: STRATEJİK ÇATAL (operatör kararı) 🎯
-CLAUDE.md "asla pes etme AMA körü körüne zorlama" — 5. spekülatif alfayı zorlamak körlük olur.
-Operatöre sunulan seçenekler (kanıt: docs/*_FINDINGS.md):
-1. **Reframe (kapı-c):** ürünü "buy-and-hold'u yenen bot" yerine başka bir değer önerisi
-   olarak tanımla (risk-yönetimi/otomasyon/raporlama), gerçek-para hedefini bırak.
-2. **Son alfa kolu:** order-book OFI (canlı kaydet→forward-test) — tek kalan data-hafif yol,
-   ama Faz 1 mikroyapıda maliyetin edge'i yediğini gösterdi → düşük umut.
-3. **Yeni veri sınıfı (para gerektirir):** ücretli on-chain (Glassnode/CryptoQuant) veya
-   alternatif veri — operatör bütçe kararı.
-4. **Dürüst duraklat:** kanıtlı edge yok; sistemi sağlam/paper bırak, periyodik gözden geçir.
+CLAUDE.md "asla pes etme AMA körü körüne zorlama" — 6 sınıftan sonra daha fazla yön-tahmini
+zorlamak körlük. Carry kategorik-farklıydı, denendi → tek survivor. Operatöre seçenekler:
+1. **Carry'yi ciddiye al (en yüksek EV):** gerçek-sürtünme due-diligence + türev hesabı/
+   sermaye kararı OPERATÖRÜN. Paper forward-track kurulabilir. UYARI: marjinal+çürüyor.
+2. **Reframe (kapı-c):** "buy-and-hold yenen bot" yerine başka değer önerisi (risk-yön./otomasyon).
+3. **Yeni veri sınıfı (para):** ücretli on-chain (Glassnode/CryptoQuant) — bütçe kararı.
+4. **Order-book OFI:** son data-hafif yol, düşük umut (Faz 1 mikroyapı maliyet uyarısı).
+5. **Dürüst duraklat:** sistemi sağlam/paper bırak, periyodik gözden geçir.
 
 ## Süreklilik notu
 İkinci öncelik: birkaç saatte bir headless `claude -p` koşan Windows zamanlanmış
