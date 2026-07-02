@@ -1,5 +1,16 @@
 # Changelog
 
+## [2026-07-02] — Kimlik pivotu: Gözcü Kulesi + Lab
+
+- **pivot**: Alfa-botu kimliği kanıtla kapatıldı (6 sınıf, docs/EDGE_SEARCH_SUMMARY.md);
+  proje = carry rejim gözcüsü + edge-doğrulama laboratuvarı. Tek harita: ROADMAP.md.
+- **feat**: `scripts/carry_tracker.py` — delta-nötr carry ileri-doğru izleyici +
+  **T1 tetiği otomatik** (trailing-28d >%15/yıl → `T1_ALERT.md`); 8 unit test.
+- **feat**: 6 dürüst kill-test harness'ı (`scripts/validate_*_edge.py`).
+- **fix**: BayesianKelly uncertainty tabanı (docstring çelişkisi) — suite yeşil.
+- **docs**: README sıfırdan; CLAUDE.md güncel gerçeğe; bayat roadmap/faz/Azure/HANDOFF
+  dokümanları `docs/archive/`'a.
+
 ## [Unreleased] — Autonomous agent run (2026-03-26)
 
 ### Phase 1 — Stability & Correctness

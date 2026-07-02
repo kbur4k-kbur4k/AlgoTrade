@@ -10,7 +10,16 @@ import sqlite3
 
 import pytest
 
-from scripts.carry_tracker import ENTRY_COST_BPS, NOTIONAL, ensure_db, record_settlements
+from scripts.carry_tracker import (
+    ENTRY_COST_BPS,
+    NOTIONAL,
+    SETTLEMENTS_PER_DAY,
+    T1_THRESHOLD_ANN,
+    T1_WINDOW_DAYS,
+    check_t1,
+    ensure_db,
+    record_settlements,
+)
 
 
 @pytest.fixture()
@@ -63,3 +72,39 @@ class TestRecordSettlements:
             "SELECT funding_time FROM carry_obs ORDER BY rowid"
         )]
         assert times == [1000, 2000, 3000]
+
+
+EIGHT_H_MS = 8 * 3600 * 1000
+
+
+def _window(rate: float, n: int | None = None) -> list[dict]:
+    """A full T1 window of settlements 8h apart at a constant rate."""
+    n = n if n is not None else T1_WINDOW_DAYS * SETTLEMENTS_PER_DAY
+    return _rows(*(((i + 1) * EIGHT_H_MS, rate) for i in range(n)))
+
+
+class TestT1Trigger:
+    def test_fires_on_fat_regime(self, con) -> None:
+        # 0.0005/8h -> ~54.8%/yr, far above the 15% threshold
+        record_settlements(con, _window(0.0005))
+        ann, fired = check_t1(con)
+        assert fired
+        assert ann == pytest.approx(0.0005 * SETTLEMENTS_PER_DAY * 365)
+
+    def test_quiet_on_thin_regime(self, con) -> None:
+        # 0.00005/8h -> ~5.5%/yr, below threshold
+        record_settlements(con, _window(0.00005))
+        ann, fired = check_t1(con)
+        assert not fired
+        assert 0 < ann < T1_THRESHOLD_ANN
+
+    def test_never_fires_on_sparse_data(self, con) -> None:
+        # huge rate but only 10 settlements — under half the expected coverage
+        record_settlements(con, _window(0.005, n=10))
+        ann, fired = check_t1(con)
+        assert not fired
+        assert ann == 0.0
+
+    def test_empty_db_is_quiet(self, con) -> None:
+        ann, fired = check_t1(con)
+        assert (ann, fired) == (0.0, False)

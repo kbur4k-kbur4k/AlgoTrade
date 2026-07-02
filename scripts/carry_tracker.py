@@ -35,6 +35,14 @@ ENTRY_COST_BPS = 8.0         # one-time round-trip cost assumed when the book op
 SYMBOL = "ETHUSDT"
 FUNDING_URL = "https://fapi.binance.com/fapi/v1/fundingRate"
 
+# ROADMAP.md FAZ C / T1: "carry 4+ hafta sürekli >%15/yıl" → operatöre bildirim.
+# Proxy: trailing 28-day annualized mean funding above threshold, with enough
+# settlement coverage that a few missing records can't fake a signal.
+T1_WINDOW_DAYS = 28
+T1_THRESHOLD_ANN = 0.15
+T1_ALERT_FILE = "T1_ALERT.md"
+SETTLEMENTS_PER_DAY = 3
+
 
 def ensure_db(con: sqlite3.Connection) -> None:
     con.execute(
@@ -87,6 +95,49 @@ def record_settlements(con: sqlite3.Connection, rows: list[dict]) -> int:
     return new
 
 
+def check_t1(
+    con: sqlite3.Connection,
+    window_days: int = T1_WINDOW_DAYS,
+    threshold: float = T1_THRESHOLD_ANN,
+) -> tuple[float, bool]:
+    """Evaluate the T1 trigger: trailing-window annualized carry vs threshold.
+
+    Returns (annualized_carry, fired). Never fires on thin data: requires at
+    least half the expected settlements in the window, so gaps in recording
+    cannot fabricate a fat-regime signal.
+    """
+    row = con.execute("SELECT MAX(funding_time) FROM carry_obs").fetchone()
+    if not row or row[0] is None:
+        return 0.0, False
+    end = int(row[0])
+    start = end - window_days * 86400 * 1000
+    rates = [r[0] for r in con.execute(
+        "SELECT funding_rate FROM carry_obs WHERE funding_time > ? AND funding_time <= ?",
+        (start, end),
+    )]
+    expected = window_days * SETTLEMENTS_PER_DAY
+    if len(rates) < expected / 2:
+        return 0.0, False
+    ann = (sum(rates) / len(rates)) * SETTLEMENTS_PER_DAY * 365
+    return ann, ann > threshold
+
+
+def write_t1_alert(ann: float, window_days: int = T1_WINDOW_DAYS) -> None:
+    """Drop a loud, human-readable flag file for the operator (ROADMAP T1)."""
+    with open(T1_ALERT_FILE, "w", encoding="utf-8") as f:
+        f.write(
+            "# 🔔 T1 ALERT — ŞİŞMAN CARRY REJİMİ\n\n"
+            f"_{time.strftime('%Y-%m-%d %H:%M UTC', time.gmtime())}_\n\n"
+            f"Son {window_days} günün yıllıklandırılmış funding carry'si: "
+            f"**{ann*100:+.1f}%** (eşik: >{T1_THRESHOLD_ANN*100:.0f}%).\n\n"
+            "ROADMAP.md FAZ C / T1 tetiklendi. Sıradaki adımlar OPERATÖRÜN:\n"
+            "1. docs/CARRY_FINDINGS.md'yi oku (riskler: likidasyon/basis/karşı-taraf).\n"
+            "2. Karar: türev hesabı + sermaye ayrılacak mı?\n"
+            "3. Evetse: 2 hafta paper-doğrulama → ancak ondan sonra küçük pilot.\n\n"
+            "Gerçek para OTOMATİK hareket etmez — bu dosya sadece bir zildir.\n"
+        )
+
+
 def main() -> int:
     con = sqlite3.connect(DB)
     ensure_db(con)
@@ -113,6 +164,16 @@ def main() -> int:
         print(f"(paper, market-neutral; benchmark risk-free ~+4-5%/yr; see docs/CARRY_FINDINGS.md)")
     else:
         print(f"recorded {new} settlement(s); need >=2 observations to report a curve.")
+
+    # ROADMAP FAZ C / T1: the watchtower's actual job — is the regime fat?
+    t1_ann, fired = check_t1(con)
+    if fired:
+        write_t1_alert(t1_ann)
+        print(f"\n*** T1 ALERT: trailing-{T1_WINDOW_DAYS}d carry {t1_ann*100:+.1f}%/yr "
+              f"> {T1_THRESHOLD_ANN*100:.0f}% — {T1_ALERT_FILE} yazıldı, operatöre haber ver! ***")
+    else:
+        print(f"T1 check: trailing-{T1_WINDOW_DAYS}d carry {t1_ann*100:+.1f}%/yr "
+              f"(eşik {T1_THRESHOLD_ANN*100:.0f}%) — rejim ince, nöbet sürüyor.")
     con.close()
     return 0
 

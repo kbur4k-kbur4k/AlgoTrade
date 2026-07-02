@@ -19,7 +19,9 @@ Yeni kimlik: **GÖZCÜ KULESİ + LABORATUVAR.**
 
 - [x] Eski roadmap/faz dokümanları → `docs/archive/` (silinmez, git'te geri alınabilir).
 - [x] Bu dosya yazıldı; tek sayfa, kesin.
-- [ ] README yeni kimliğe göre güncellenir (gözcü+lab; alfa-botu iddiası kalkar).
+- [x] README yeni kimliğe göre güncellendi (gözcü+lab; alfa-botu iddiası kalktı).
+- [x] Konsolidasyon: CLAUDE.md güncel, kırık test yok (66+ yeşil), tracker test altında,
+      **T1 tetiği otomatik** (tracker her koşuda kontrol eder; ateşlenirse `T1_ALERT.md` yazar).
 - [ ] Operatör tek komut çalıştırır (isteğe bağlı, bedava izleme için):
       `powershell -ExecutionPolicy Bypass -File scripts\setup_carry_schedule.ps1`
 - Paper-loop KAPALI kalır: ölü sinyalle bot koşturmak israf. Sadece tracker koşar.

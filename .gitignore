@@ -57,3 +57,4 @@ wallets.local.json
 # backtest output
 results/
 carry_track.db*
+T1_ALERT.md
