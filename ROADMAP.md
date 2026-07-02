@@ -40,6 +40,7 @@ Yeni kimlik: **GÖZCÜ KULESİ + LABORATUVAR.**
 | **T2 — Sermaye eşiği** | Sermaye ~$50k+ (veya operatörün belirlediği eşik) | Ücretli-veri ar-ge yeniden açılır (aylık bütçe operatörden; her sinyal kill-test barından geçer) |
 | **T3 — Yeni fikir** | Operatörden ya da Claude'dan fikir gelirse | 1 saatlik kill-test → sonuç LEARNINGS.md'ye → geçerse konuşulur, geçmezse biter |
 | **T4 — Sessizlik** | 12 ay hiçbir tetik ateşlenmezse | Yıllık gözden geçirme: devam / arşiv kararı birlikte |
+| **T5 — Veri hendeği** (2026-07-02 mandası) | Sürekli, bedava | `market_recorder.py` 8 saatte bir top-40 perp'in geri-indirilemez verisini (orderbook/OI/funding) `market_tape.db`'ye kaydeder. 3-6 ay bant birikince alt-perp cross-sectional araştırması kill-test barıyla açılır. Bir sinyal barı GEÇERSE — ancak o zaman — 7/24 kayıt için ~$5-10/ay VPS gündeme gelir (para kanıtı takip eder). |
 
 ## Değişmez ilkeler
 

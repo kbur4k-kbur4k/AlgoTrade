@@ -58,3 +58,4 @@ wallets.local.json
 results/
 carry_track.db*
 T1_ALERT.md
+market_tape.db*
