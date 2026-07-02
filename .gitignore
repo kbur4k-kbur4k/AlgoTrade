@@ -66,3 +66,4 @@ oci_retry.py
 # runtime artifacts
 carry_tracker.log
 dataset_registry.db*
+scripts/run_watch.cmd
