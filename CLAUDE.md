@@ -46,32 +46,35 @@ edeni, sana söylenmesini bekleme — yap.
 
 ---
 
-## ŞU ANKİ GERÇEK (2026-06 — kanıtla, varsayımla değil)
+## ŞU ANKİ GERÇEK (2026-07 — kanıtla, varsayımla değil)
 
-- **`docs/FAZ1_FINDINGS.md`** belirleyici belge. 3 yıllık ETH verisinde, maliyet-dahil,
-  walk-forward test edildi: mevcut feature seti + LGBM/momentum stratejisinin maliyet sonrası
-  buy-and-hold'u yenen bir edge'i **YOK** (edge'in olduğu 5-dk frekansında maliyet öldürüyor;
-  maliyetin yönetilebildiği uzun horizon'da edge kayboluyor). **Bu ölü yolu tekrar tune etme.**
-- **`paper_trades.db`**: aylarca paper modda kaldı ama gerçek trade sayısı = **0.** Tüm kararlar
-  aynı hata: `WRONG_CHAIN` — "Configured chain_id=1 is not Base mainnet." Sistem Base bekliyor,
-  Ethereum mainnet'e ayarlı, her döngü preflight'ta takılıyor. Hiç ölçüm üretmedi çünkü hiç
-  çalışmadı.
-- FAZ1 üç kapı bırakmış: (a) farklı alfa kaynağı (on-chain akış, alt-veri); (b) farklı varlık /
-  frekans; (c) hiçbiri tutmazsa beklentiyi yeniden çerçevele.
+- **Edge arayışı TAMAMLANDI** (`docs/EDGE_SEARCH_SUMMARY.md` konsolide kanıt). 6 alfa sınıfı
+  maliyet-dahil + out-of-cycle (farklı dönem VE varlık) test edildi. 5 yön-tahmini sınıfı ÖLÜ:
+  OHLCV+ML (FAZ1), funding mean-rev, stablecoin-supply (out-of-cycle'da çöktü — overfit),
+  xsec-momentum (çürümüş), sentiment. **Bu ölü yolları tekrar tune etme; yeni yön-tahmini
+  sinyali de zorlamadan önce EDGE_SEARCH_SUMMARY'yi oku.**
+- **TEK hayatta kalan: delta-nötr funding CARRY** (`docs/CARRY_FINDINGS.md`) — yapısal,
+  2019-2026 her yıl pozitif, tarihsel +%14/yıl; ama döngüsel ve şu an ince (~%1-3, risk-free
+  altı). `scripts/carry_tracker.py` bunu bedavaya izliyor (`carry_track.db`).
+- **Proje kimliği DEĞİŞTİ (operatör kararı 2026-07-02):** alfa-botu → GÖZCÜ KULESİ + LAB.
+  Tek geçerli harita: **kök `ROADMAP.md`** (olay-güdümlü tetikler T1-T4; geliştirme donduruldu;
+  operatör eforu ayda 1 rapor). Eski roadmap/faz dokümanları `docs/archive/`'da — canlandırma.
+- Eski WRONG_CHAIN/session bug'ları ÇÖZÜLDÜ (chain_id=8453, Base). Paper-loop bilinçli KAPALI:
+  ölü LGBM sinyaliyle bot koşturmak israf. `wallet_manager/` (55k satır) dondurulmuş ama sağlam.
+- Ortam: `python` = 3.12 (deps + pytest var, bunu kullan); `py` = 3.14 (torch yok, KULLANMA).
+  Tam test suite'i KOŞMA (asılı kalıyor, 5GB+ RAM) — hedefli dosya koş.
 
 ---
 
 ## İLK HAMLELER (sırayla — ölçüye göre öncelik)
 
-1. **WRONG_CHAIN'i düzelt.** Chain config'i Base mainnet'e ayarla (muhtemelen
-   `wallets.local.json` / `.env`, `chain_id`). Sağlamlığın ilk şartı: sistem önce gerçekten
-   çalışmalı.
-2. **Paper'ı gerçekten çalıştır.** `paper_trades` ve `paper_decisions` dolmaya başlasın. Artık
-   ölçüm var.
-3. **Yeni alfa ara — kanıtla.** Ölü LGBM yolunu bırak. Elindeki iskeleyi kullan:
-   `wallet_manager/data/onchain_flows.py`, `wallet_manager/signal_discovery.py`. Yeni sinyalleri
-   FAZ1'in yaptığı gibi maliyet-dahil + OOS test et. Biri buy-and-hold'u net yenerse — buldun.
-   Hiçbiri yenmezse dürüstçe "bu sınıf da tutmadı, sıradaki yol" yaz.
+1. **Nöbeti sürdür.** `ROADMAP.md` FAZ B/C: carry tracker verisine bak, tetik (T1-T4) ateşlenmiş
+   mi kontrol et. T1 (carry 4+ hafta >%15/yıl) ateşlendiyse operatöre bildir — karar onun.
+2. **Kırık varsa düzelt** (PUSULA #1): test kırığı, tracker aksaması, veri kaynağı kopması.
+3. **Yeni fikir geldiyse** (operatörden ya da senden): 1 saatlik kill-test
+   (`scripts/validate_*_edge.py` desenini kullan; bar = maliyet-dahil + out-of-cycle +
+   falsifikasyon), sonucu LEARNINGS.md'ye yaz, geçmezse bitir.
+4. **Bunların dışında feature GELİŞTİRME.** Churn hastalıktı; ROADMAP.md tek sayfa kalacak.
 
 ---
 
@@ -80,9 +83,10 @@ edeni, sana söylenmesini bekleme — yap.
 Operatör seni elle tetiklemek ya da `/loop` gibi komutlar yazmak istemiyor. Tekrar eden
 çalışmayı **sen** kur:
 
-- Henüz tekrar eden bir düzenek yoksa, kendini sürdürecek bir mekanizma kur. Yeniden
-  başlatmalara dayanması için en sağlamı: bir **zamanlanmış görev** (Windows'ta `schtasks` ile,
-  bu projede headless `claude -p` çalıştıran). İnteraktif oturumdaysan alternatif: `/goal` + `/loop`.
+- Mevcut düzenek: `scripts/setup_carry_schedule.ps1` (8 saatte bir bedava carry izleme —
+  kalıcı `schtasks` görevini güvenlik gereği OPERATÖR kurar; harness Claude'un kendi kendine
+  kurmasını doğru olarak engelliyor, bypass etme). Kurulu değilse operatöre hatırlat;
+  interaktif oturumda alternatif: tracker'ı elle koş (`python -m scripts.carry_tracker`).
 - **Aralığı makul tut: birkaç saatte bir yeterli.** Dakikada bir çalışma rate-limit'i yakar ve
   gereksizdir.
 - Düzenek zaten kuruluysa **tekrar kurma**; sadece işe devam et.

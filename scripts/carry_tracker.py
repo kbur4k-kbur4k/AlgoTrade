@@ -56,15 +56,12 @@ def fetch_recent_funding(limit: int = 200) -> list[dict]:
         return json.loads(resp.read())
 
 
-def main() -> int:
-    con = sqlite3.connect(DB)
-    ensure_db(con)
+def record_settlements(con: sqlite3.Connection, rows: list[dict]) -> int:
+    """Idempotently record new settlements; returns how many were new.
 
-    rows = fetch_recent_funding()
-    if not rows:
-        print("no funding data returned; nothing recorded.")
-        return 1
-
+    Cumulative carry starts at -entry_cost (paid once when the book opens) and
+    accrues fundingRate * NOTIONAL per settlement (short perp receives when >0).
+    """
     existing = {r[0] for r in con.execute("SELECT funding_time FROM carry_obs")}
     last_cum = con.execute(
         "SELECT cum_carry_usd FROM carry_obs ORDER BY funding_time DESC LIMIT 1"
@@ -73,7 +70,7 @@ def main() -> int:
     first_record = last_cum is None
 
     new = 0
-    for r in rows:
+    for r in sorted(rows, key=lambda x: int(x["fundingTime"])):
         ft = int(r["fundingTime"])
         if ft in existing:
             continue
@@ -87,6 +84,19 @@ def main() -> int:
         )
         new += 1
     con.commit()
+    return new
+
+
+def main() -> int:
+    con = sqlite3.connect(DB)
+    ensure_db(con)
+
+    rows = fetch_recent_funding()
+    if not rows:
+        print("no funding data returned; nothing recorded.")
+        return 1
+
+    new = record_settlements(con, rows)
 
     # report running forward stats
     obs = con.execute(

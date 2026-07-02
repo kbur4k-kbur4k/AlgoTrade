@@ -108,7 +108,10 @@ class BayesianKelly:
         n = self.n_trades
         if n >= self._min_trades:
             return 1.0
-        return max(0.15, math.sqrt(n / self._min_trades))
+        # No floor: zero evidence must mean zero certainty (0.0 = max uncertainty,
+        # per this docstring). The old 0.15 floor contradicted that semantic and
+        # was never consumed by position sizing — only reported via to_dict().
+        return math.sqrt(n / self._min_trades)
 
     def to_dict(self) -> dict[str, Any]:
         p = self._beta_mean()
