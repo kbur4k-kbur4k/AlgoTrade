@@ -1,6 +1,13 @@
 # STATUS.md — güncel durum
 
-_Son güncelleme: 2026-06-28_
+_Son güncelleme: 2026-07-02_
+
+## 🗺️ YENİ KİMLİK (operatör kararı, 2026-07-02)
+Proje komple değişti: "inşa hâlindeki alfa botu" → **GÖZCÜ KULESİ + LAB.**
+Tek geçerli harita: **ROADMAP.md** (kök dizin) — eski roadmap/faz dokümanları
+docs/archive/'a taşındı. Geliştirme dondu; olay-güdümlü nöbet başladı (T1-T4
+tetikleri). Operatör eforu: ayda 1 rapor. Carry tracker ilk gerçekleşen veri:
+son 66 gün +%0.8/yıl (ince rejim — T1 uzak, nöbet doğru duruş).
 
 ## ⚠️ Düzeltme: stablecoin edge'i REDDEDİLDİ (out-of-cycle çöktü)
 Stablecoin-supply sinyali in-window (2023-26 ETH) harika görünmüştü ama

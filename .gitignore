@@ -56,3 +56,4 @@ wallets.local.json
 
 # backtest output
 results/
+carry_track.db*
