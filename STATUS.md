@@ -2,6 +2,13 @@
 
 _Son güncelleme: 2026-07-02_
 
+## 🚨 GÜVENLİK: OPERATÖR AKSİYONU GEREKLİ (~10 dk)
+Tam denetimde git'e commit'lenmiş GERÇEK sırlar bulundu (Telegram token, Alchemy/
+Infura key, VAULT_KEY + şifreli cüzdan). Dosyalar HEAD'den çıkarıldı ama geçmişte
+duruyor → **anahtarları ROTATE et:** docs/SECURITY_INCIDENT_2026-07-02.md'deki
+5 adımlı listeyi uygula. Cüzdan boş doğrulandı (ETH=0, USDC=0) — fon riski yok,
+ama token/key'ler canlı olabilir.
+
 ## ✅ FAZ DEĞİŞİMİ: YAPIM BİTTİ → TEST/NÖBET AŞAMASI (operatör onayı, 2026-07-02)
 Yapım aşaması RESMEN kapandı. Doğrulama süpürmesi:
 - Hedefli testler: **81/81 yeşil** (tracker, recorder, js_sprint, migration, TQG).

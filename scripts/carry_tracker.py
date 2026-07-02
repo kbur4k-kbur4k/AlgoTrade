@@ -141,6 +141,10 @@ def write_t1_alert(ann: float, window_days: int = T1_WINDOW_DAYS) -> None:
 def main() -> int:
     con = sqlite3.connect(DB)
     ensure_db(con)
+    # OneDrive altında sqlite: senkron nadiren yazım sırasında bozabilir — erken uyar.
+    integ = con.execute("PRAGMA quick_check").fetchone()[0]
+    if integ != "ok":
+        print(f"WARN: {DB} integrity check failed: {integ} — yedekten dön/yeniden oluştur.")
 
     rows = fetch_recent_funding()
     if not rows:

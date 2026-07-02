@@ -105,6 +105,10 @@ def record_oi(con: sqlite3.Connection, ts: int, symbol: str, oi: dict) -> None:
 def main() -> int:
     con = sqlite3.connect(DB)
     ensure_db(con)
+    # OneDrive altında sqlite: senkron nadiren yazım sırasında bozabilir — erken uyar.
+    integ = con.execute("PRAGMA quick_check").fetchone()[0]
+    if integ != "ok":
+        print(f"WARN: {DB} integrity check failed: {integ} — yedekten dön/yeniden oluştur.")
     ts = int(time.time())
 
     tickers = _get("/fapi/v1/ticker/24hr")

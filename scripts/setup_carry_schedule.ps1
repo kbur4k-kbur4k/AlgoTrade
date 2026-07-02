@@ -13,7 +13,8 @@
 
 $proj = Split-Path -Parent $PSScriptRoot
 $py = (Get-Command python).Source
-$action = "cmd /c cd /d `"$proj`" && `"$py`" -m scripts.carry_tracker >> `"$proj\carry_tracker.log`" 2>&1 && `"$py`" -m scripts.market_recorder >> `"$proj\carry_tracker.log`" 2>&1"
+# NOT: iki koşu '&' ile bağlı (koşulsuz) — nöbet düşerse teyp yine de kaydetsin.
+$action = "cmd /c cd /d `"$proj`" & `"$py`" -m scripts.carry_tracker >> `"$proj\carry_tracker.log`" 2>&1 & `"$py`" -m scripts.market_recorder >> `"$proj\carry_tracker.log`" 2>&1"
 
 schtasks /Create /TN "WalletBot_CarryTracker" /TR $action /SC HOURLY /MO 8 /F
 Write-Host "Kuruldu: 8 saatte bir carry nobeti + veri teybi. Kaldirmak icin: schtasks /Delete /TN WalletBot_CarryTracker /F"

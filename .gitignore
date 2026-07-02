@@ -59,3 +59,10 @@ results/
 carry_track.db*
 T1_ALERT.md
 market_tape.db*
+# secrets — never track (incident 2026-07-02: rotate keys, see docs/SECURITY_INCIDENT_2026-07-02.md)
+deployment/k8s/secret.yaml
+deployment/k8s/wallets-secret.yaml
+oci_retry.py
+# runtime artifacts
+carry_tracker.log
+dataset_registry.db*
