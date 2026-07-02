@@ -2,6 +2,16 @@
 
 _Son güncelleme: 2026-07-02_
 
+## ✅ FAZ DEĞİŞİMİ: YAPIM BİTTİ → TEST/NÖBET AŞAMASI (operatör onayı, 2026-07-02)
+Yapım aşaması RESMEN kapandı. Doğrulama süpürmesi:
+- Hedefli testler: **81/81 yeşil** (tracker, recorder, js_sprint, migration, TQG).
+- Dondurulmuş bot 45s smoke: **PASS** (orchestrator 1/1 wallet, çökme yok).
+- Canlı nöbet: T1 doğru sessiz (trailing-28d −0.0%/yıl). Canlı teyp: 2. snapshot (80 depth satırı).
+- GitHub push: TAMAM (origin/main güncel).
+Bundan sonrası TEST aşaması = ileri-doğru gözlem: carry nöbeti + veri teybi + tetik bekleme.
+Kod yazılmaz; veri birikir, kanıt toplanır. Tek açık kalem: zamanlanmış görevi operatör kurar
+(sistem sınıflandırıcısı Claude'a izin vermiyor): `powershell -ExecutionPolicy Bypass -File scripts\setup_carry_schedule.ps1`
+
 ## 🗺️ YENİ KİMLİK (operatör kararı, 2026-07-02)
 Proje komple değişti: "inşa hâlindeki alfa botu" → **GÖZCÜ KULESİ + LAB.**
 Tek geçerli harita: **ROADMAP.md** (kök dizin) — eski roadmap/faz dokümanları
